@@ -1,1 +1,0 @@
-eeprom.o: eeprom.c
