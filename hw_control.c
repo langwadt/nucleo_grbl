@@ -78,6 +78,42 @@ void init_step_pins(void)
     gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO8);
 }
 
+void init_spindle()
+{
+  rcc_periph_clock_enable(RCC_GPIOB);
+  rcc_periph_clock_enable(RCC_TIM3);
+
+  timer_reset(TIM3);
+
+  gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO0);
+
+  gpio_set_af(GPIOB, GPIO_AF2, GPIO0);
+
+  
+
+  timer_set_mode(TIM3, TIM_CR1_CKD_CK_INT, // clock division
+                        TIM_CR1_CMS_EDGE,   // Center-aligned mode selection
+                        TIM_CR1_DIR_UP);    // TIMx_CR1 DIR: Direction
+  
+  timer_continuous_mode(TIM3);             // Disables TIM_CR1_OPM (One pulse mode)
+  timer_set_period(TIM3, 20000-1);                    // Sets TIMx_ARR
+  timer_set_prescaler(TIM3, 50-1);               // Adjusts speed of timer
+  timer_enable_preload(TIM3);                        // Set ARPE bit in TIMx_CR1
+   
+  timer_enable_update_event(TIM3); 
+  // Channel-specific settings
+  timer_set_oc_value(TIM3, TIM_OC3, 1000);             // sets TIMx_CCRx
+  timer_set_oc_mode(TIM3, TIM_OC3, TIM_OCM_PWM1);   // Sets PWM Mode 1
+  timer_enable_oc_preload(TIM3, TIM_OC3);           // Sets OCxPE in TIMx_CCMRx
+  timer_set_oc_polarity_high(TIM3, TIM_OC3);        // set desired polarity in TIMx_CCER
+  timer_enable_oc_output(TIM3, TIM_OC3);             // set CCxE bit in TIMx_CCER  (enable output)
+
+  timer_enable_counter(TIM3);
+  timer_generate_event(TIM3, TIM_EGR_UG);
+
+
+}
+
 
 
 uint32_t spibytes(uint8_t data0,uint8_t data1,uint8_t data2);
@@ -112,16 +148,19 @@ void init_steppers(void)
   spibytes(0x88,0x88,0x88);
 
   spibytes(0x16,0x16,0x16);
-  spibytes(0x88|1,0x88|1,0x88|1);  // halfstep
+  spibytes(0x88|4,0x88|4,0x88|4);  // 1/16 step
 
   spibytes(0x09,0x09,0x9);
-  spibytes(floor(500/31),floor(800/31),floor(1000/31));      // 31mA per
+  spibytes(floor(500/31),floor(1500/31),floor(2000/31));      // 31mA per
 
   spibytes(0x13,0x13,0x13);  // overcurrent ~3.5A
   spibytes(0xf,0xf,0xf);
 
 
-  spibytes(0xb8,0xb8,0xb8);  // enable Z,Y,X
+  spibytes(0xb8,0xb8,0xb8);  // enable Z,X,Y
+
+
+  init_spindle();
 
 
 }
@@ -284,4 +323,36 @@ uint32_t spibytes(uint8_t data0,uint8_t data1,uint8_t data2)
 
 	return res;
 
+}
+
+uint8_t probe_invert_mask;
+
+// Probe pin initialization routine.
+void probe_init() 
+{
+  rcc_periph_clock_enable(RCC_GPIOC);
+  gpio_mode_setup(GPIOC, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, GPIO1);  // X
+    
+  probe_configure_invert_mask(false); // Initialize invert mask. Not required. Updated when in-use.
+}
+
+// Called by probe_init() and the mc_probe() routines. Sets up the probe pin invert mask to 
+// appropriately set the pin logic according to setting for normal-high/normal-low operation 
+// and the probing cycle modes for toward-workpiece/away-from-workpiece. 
+void probe_configure_invert_mask(uint8_t is_probe_away)
+{
+  if(is_probe_away==true) 
+    probe_invert_mask = 1; 
+  else
+    probe_invert_mask = 0; 
+}
+
+
+// Returns the probe pin state. Triggered = true. Called by gcode parser and probe state monitor.
+uint8_t probe_get_state() 
+{ 
+  if(gpio_get(GPIOC,GPIO1)==probe_invert_mask) 
+    return true; 
+  else  
+    return false;
 }

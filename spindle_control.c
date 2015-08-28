@@ -20,6 +20,7 @@
 */
 
 #include "grbl.h"
+#include <libopencm3/stm32/timer.h>  
 
 
 void spindle_init()
@@ -62,12 +63,15 @@ void spindle_stop()
 ///	  SPINDLE_ENABLE_PORT &= ~(1<<SPINDLE_ENABLE_BIT); // Set pin to low
 ///	#endif
 ///  #endif 
-; 
+timer_set_oc_value(TIM3, TIM_OC3, 1000);             // sets TIMx_CCRx; 
 }
 
 
 void spindle_set_state(uint8_t state, float rpm)
 {
+  
+  int i;
+  
  // // Halt or set spindle direction and rpm. 
  // if (state == SPINDLE_DISABLE) {
  //
@@ -126,6 +130,19 @@ void spindle_set_state(uint8_t state, float rpm)
  //   #endif
  //
  // }
+ 
+
+  if (state == SPINDLE_DISABLE) {
+ 
+    spindle_stop();
+ 
+  } else {
+    for(i=0;i<35;i++)
+    {
+      timer_set_oc_value(TIM3, TIM_OC3, 1000+i*20);             // sets TIMx_CCRx
+      _delay_ms(20);
+    }
+  }
 }
 
 
