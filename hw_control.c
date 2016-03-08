@@ -151,7 +151,7 @@ void init_steppers(void)
   spibytes(0x88|4,0x88|4,0x88|4);  // 1/16 step
 
   spibytes(0x09,0x09,0x9);
-  spibytes(floor(500/31),floor(1500/31),floor(2000/31));      // 31mA per
+  spibytes(floor(500/31),floor(1200/31),floor(1200/31));      // 31mA per
 
   spibytes(0x13,0x13,0x13);  // overcurrent ~3.5A
   spibytes(0xf,0xf,0xf);
@@ -269,7 +269,7 @@ void tim2_isr(void)
   {
     timer_clear_flag(TIM2, TIM_SR_UIF);
 
-    nvic_set_pending_irq(NVIC_DMA1_STREAM6_IRQ);
+    nvic_set_pending_irq(NVIC_DMA1_STREAM6_IRQ); // fire a lower interrupt for the rest of step int so that step reset isn't blocked
    
   }
   

@@ -1,0 +1,56 @@
+[Project ID]
+Signature=UE Proj: v.1
+[Project Information]
+Use Relative Directory=1
+Relative to Project File=1
+Compilable=1
+[uemakeXp]
+Compiler=Configs\ARM Compiler\Library
+[Group]
+0=src
+1=hdr
+[Files - src]
+0=..\coolant_control.c
+1=..\delay.c
+2=..\eeprom.c
+3=..\floatunsisf.c
+4=..\gcode.c
+5=..\hw_control.c
+6=..\limits.c
+7=..\motion_control.c
+8=..\nuts_bolts.c
+9=..\planner.c
+10=..\print.c
+11=..\probe.c
+12=..\protocol.c
+13=..\report.c
+14=..\serial_stm32.c
+15=..\settings.c
+16=..\spindle_control.c
+17=..\stepper.c
+18=..\stm_main.c
+19=..\system.c
+[Files - hdr]
+0=..\config.h
+1=..\coolant_control.h
+2=..\cpu_map.h
+3=..\defaults.h
+4=..\defaults_generic.h
+5=..\delay.h
+6=..\eeprom.h
+7=..\gcode.h
+8=..\grbl.h
+9=..\hw_control.h
+10=..\limits.h
+11=..\motion_control.h
+12=..\nuts_bolts.h
+13=..\planner.h
+14=..\print.h
+15=..\probe.h
+16=..\protocol.h
+17=..\report.h
+18=..\serial.h
+19=..\settings.h
+20=..\spindle_control.h
+21=..\stepper.h
+22=..\system.h

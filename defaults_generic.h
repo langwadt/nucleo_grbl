@@ -54,8 +54,8 @@
   #define DEFAULT_HARD_LIMIT_ENABLE 1  // false
   #define DEFAULT_HOMING_ENABLE 1  // false
   #define DEFAULT_HOMING_DIR_MASK 0 // move positive dir
-  #define DEFAULT_HOMING_FEED_RATE 125.0 // mm/min
-  #define DEFAULT_HOMING_SEEK_RATE 200.0 // mm/min
+  #define DEFAULT_HOMING_FEED_RATE 500.0 // mm/min
+  #define DEFAULT_HOMING_SEEK_RATE 300.0 // mm/min
   #define DEFAULT_HOMING_DEBOUNCE_DELAY 50 // msec (0-65k)
   #define DEFAULT_HOMING_PULLOFF 2.0 // mm
 

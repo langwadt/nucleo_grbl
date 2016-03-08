@@ -58,12 +58,17 @@
 //#define bit_toggle_atomic(x,mask) {uint8_t sreg = SREG; cli(); (x) ^= (mask); SREG = sreg; }
 
 //fix me
+// should use bitbanding but it need bit number not mask 
+//#define bit_true_atomic(x,bit) *(char*)(0x22000000+(((int)&x)- 0x20000000)*32+4*bit) = 1
+//#define bit_false_atomic(x,bit) *(char*)(0x22000000+(((int)&x)- 0x20000000)*32+4*bit) = 0
+
 #define bit_true_atomic(x,mask) {(x) |= (mask);}
 #define bit_false_atomic(x,mask) {(x) &= ~(mask);}
-#define bit_toggle_atomic(x,mask) {(x) ^= (mask);}
+//#define bit_toggle_atomic(x,mask) {(x) ^= (mask);}
 
 #define bit_true(x,mask) (x) |= (mask)
 #define bit_false(x,mask) (x) &= ~(mask)
+
 #define bit_istrue(x,mask) ((x & mask) != 0)
 #define bit_isfalse(x,mask) ((x & mask) == 0)
 

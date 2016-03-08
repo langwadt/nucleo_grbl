@@ -24,6 +24,11 @@
 //#include <avr/io.h>
 //#include <avr/interrupt.h>
 
+
+#include "grbl.h"
+
+#include <libopencm3/stm32/flash.h>
+
 /* These EEPROM bits have different names on different devices. */
 #ifndef EEPE
 		#define EEPE  EEWE  //!< EEPROM program/write enable.
@@ -46,13 +51,25 @@
  *  \param  addr  EEPROM address to read from.
  *  \return  The byte read from the EEPROM address.
  */
+ 
+ uint8_t EEprom[4096]={0xff};
+ 
+ 
 unsigned char eeprom_get_char( unsigned int addr )
 {
+  static int firsttimeafterboot=1;
+  uint32_t i;
+
+	if(firsttimeafterboot) 
+	{
+	  for(i=0;i<sizeof(EEprom);i++) EEprom[i] = * (char*)( 0x8008000+i);
+  }
+  return EEprom[addr];
+  
 //	do {} while( EECR & (1<<EEPE) ); // Wait for completion of previous write.
 //	EEAR = addr; // Set EEPROM address register.
 //	EECR = (1<<EERE); // Start EEPROM read operation.
 //	return EEDR; // Return the byte read from EEPROM.
-  return 0;
 }
 
 /*! \brief  Write byte to EEPROM.
@@ -74,6 +91,8 @@ unsigned char eeprom_get_char( unsigned int addr )
  */
 void eeprom_put_char( unsigned int addr, unsigned char new_value )
 {
+    EEprom[addr] = new_value;
+  
 //	char old_value; // Old EEPROM value.
 //	char diff_mask; // Difference mask, i.e. old value XOR new value.
 //
@@ -126,7 +145,6 @@ void eeprom_put_char( unsigned int addr, unsigned char new_value )
   ;
 }
 
-// Extensions added as part of Grbl 
 
 
 void memcpy_to_eeprom_with_checksum(unsigned int destination, char *source, unsigned int size) {
@@ -137,6 +155,16 @@ void memcpy_to_eeprom_with_checksum(unsigned int destination, char *source, unsi
     eeprom_put_char(destination++, *(source++)); 
   }
   eeprom_put_char(destination, checksum);
+  
+  flash_unlock();
+
+  flash_erase_sector(2, 4096);
+  flash_wait_for_last_operation();
+  
+	flash_program(0x8008000, EEprom, sizeof(EEprom));
+  flash_wait_for_last_operation();
+
+  flash_lock();
 }
 
 int memcpy_from_eeprom_with_checksum(char *destination, unsigned int source, unsigned int size) {
